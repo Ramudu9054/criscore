@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CriScore</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+        }
+        #second-target{
+            background-color: pink;
+        }
+
+        .match-card {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .match-card:hover {
+            transform: scale(1.02);
+        }
+
+        .score-badge {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background-color: #28a745;
+            color: white;
+        }
+
+        .ball-highlight {
+            margin: 5px 0;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #e9ecef;
+        }
+
+        .highlight-container {
+            margin-top: 20px;
+        }
+
+        .form-row {
+            margin-top: 10px;
+        }
+
+        .btn-icon {
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-icon i {
+            margin-right: 5px;
+        }
+
+        @media (max-width: 576px) {
+            .score-badge {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="match-card" id="first-innings">
+        <h2 class="text-center">First Innings</h2>
+        <div id="first-innings-score" class="text-center score-badge">Score: 0/0</div>
+        <div id="first-innings-balls" class="text-center"></div>
+
+        <div class="form-row justify-content-center">
+            <div class="form-group col-auto">
+                <input type="number" id="first-runs-input" class="form-control" placeholder="Runs">
+            </div>
+            <div class="form-group col-auto">
+                <button class="btn btn-success btn-icon" id="add-first-runs">
+                    <i class="fas fa-plus-circle"></i>Add Runs
+                </button>
+            </div>
+        </div>
+
+        <div class="form-row justify-content-center">
+            <div class="form-group col-auto">
+                <input type="number" id="first-extras-input" class="form-control" placeholder="Extras">
+            </div>
+            <div class="form-group col-auto">
+                <button class="btn btn-info btn-icon" id="add-first-extras">
+                    <i class="fas fa-star"></i>Add Extras
+                </button>
+            </div>
+        </div>
+
+        <div class="form-row justify-content-center">
+            <div class="form-group col-auto">
+                <button class="btn btn-danger btn-icon" id="add-first-wicket">
+                    <i class="fas fa-user-times"></i>Add Wicket
+                </button>
+            </div>
+        </div>
+
+        <div class="highlight-container">
+            <h5>Ball Highlights</h5>
+            <div id="first-ball-highlights"></div>
+        </div>
+    </div>
+
+    <div class="match-card" id="second-innings" style="display: none;">
+        <h2 class="text-center">Second Innings</h2>
+        <div id="second-target" class="text-center score-badge"></div>
+        <br>
+        <br>
+        <div id="second-innings-score" class="text-center score-badge">Score: 0/0</div>
+        <div id="second-innings-balls" class="text-center"></div>
+
+        <div class="form-row justify-content-center">
+            <div class="form-group col-auto">
+                <input type="number" id="second-runs-input" class="form-control" placeholder="Runs">
+            </div>
+            <div class="form-group col-auto">
+                <button class="btn btn-success btn-icon" id="add-second-runs">
+                    <i class="fas fa-plus-circle"></i>Add Runs
+                </button>
+            </div>
+        </div>
+
+        <div class="form-row justify-content-center">
+            <div class="form-group col-auto">
+                <input type="number" id="second-extras-input" class="form-control" placeholder="Extras">
+            </div>
+            <div class="form-group col-auto">
+                <button class="btn btn-info btn-icon" id="add-second-extras">
+                    <i class="fas fa-star"></i>Add Extras
+                </button>
+            </div>
+        </div>
+
+        <div class="form-row justify-content-center">
+            <div class="form-group col-auto">
+                <button class="btn btn-danger btn-icon" id="add-second-wicket">
+                    <i class="fas fa-user-times"></i>Add Wicket
+                </button>
+            </div>
+        </div>
+
+        <div class="highlight-container">
+            <h5>Ball Highlights</h5>
+            <div id="second-ball-highlights"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    const innings = {
+        firstInnings: {
+            runs: 0,
+            wickets: 0,
+            balls: 36,
+            highlights: [],
+            ballHighlights: [],
+        },
+        secondInnings: {
+            runs: 0,
+            wickets: 0,
+            balls: 36,
+            target: 0,
+            highlights: [],
+            ballHighlights: [],
+        },
+    };
+
+    function updateFirstInningsDisplay() {
+        document.getElementById("first-innings-score").textContent = `Score: ${innings.firstInnings.runs}/${innings.firstInnings.wickets}`;
+        document.getElementById("first-innings-balls").textContent = `Balls Left: ${innings.firstInnings.balls}`;
+    }
+
+    function updateSecondInningsDisplay() {
+        document.getElementById("second-innings-score").textContent = `Score: ${innings.secondInnings.runs}/${innings.secondInnings.wickets}`;
+        document.getElementById("second-innings-balls").textContent = `Balls Left: ${innings.secondInnings.balls}`;
+    }
+
+    function addFirstInningsScore() {
+        const runsInput = document.getElementById("first-runs-input");
+        const runs = parseInt(runsInput.value);
+        if (!isNaN(runs)) {
+            innings.firstInnings.runs += runs;
+            innings.firstInnings.balls--;
+            innings.firstInnings.ballHighlights.push(`Run(s): ${runs}`);
+            updateFirstInningsDisplay();
+            displayBallHighlights('first');
+            runsInput.value = '';
+        }
+        checkFirstInningsCompletion();
+    }
+
+    function addFirstInningsExtras() {
+        const extrasInput = document.getElementById("first-extras-input");
+        const extras = parseInt(extrasInput.value);
+        if (!isNaN(extras)) {
+            innings.firstInnings.runs += extras;
+            innings.firstInnings.ballHighlights.push(`Extras: ${extras}`);
+            updateFirstInningsDisplay();
+            displayBallHighlights('first');
+            extrasInput.value = '';
+        }
+    }
+
+    function addFirstInningsWicket() {
+        innings.firstInnings.wickets++;
+        innings.firstInnings.balls--;
+        innings.firstInnings.ballHighlights.push("Wicket!");
+        updateFirstInningsDisplay();
+        displayBallHighlights('first');
+        checkFirstInningsCompletion();
+    }
+
+    function checkFirstInningsCompletion() {
+        if (innings.firstInnings.balls <= 0) {
+            alert('First Innings Complete! Switching to Second Innings.');
+            innings.secondInnings.target = innings.firstInnings.runs + 1; // Target is first innings runs + 1
+            document.getElementById("second-target").textContent = `Target: ${innings.secondInnings.target}`;
+            document.getElementById("second-innings").style.display = 'block';
+            document.getElementById("first-innings").style.display = 'none';
+        }
+    }
+
+    function addSecondInningsScore() {
+        const runsInput = document.getElementById("second-runs-input");
+        const runs = parseInt(runsInput.value);
+        if (!isNaN(runs)) {
+            innings.secondInnings.runs += runs;
+            innings.secondInnings.balls--;
+            innings.secondInnings.ballHighlights.push(`Run(s): ${runs}`);
+            updateSecondInningsDisplay();
+            displayBallHighlights('second');
+            runsInput.value = '';
+        }
+        checkSecondInningsCompletion();
+    }
+
+    function addSecondInningsExtras() {
+        const extrasInput = document.getElementById("second-extras-input");
+        const extras = parseInt(extrasInput.value);
+        if (!isNaN(extras)) {
+            innings.secondInnings.runs += extras;
+            innings.secondInnings.ballHighlights.push(`Extras: ${extras}`);
+            updateSecondInningsDisplay();
+            displayBallHighlights('second');
+            extrasInput.value = '';
+        }
+    }
+
+    function addSecondInningsWicket() {
+        innings.secondInnings.wickets++;
+        innings.secondInnings.balls--;
+        innings.secondInnings.ballHighlights.push("Wicket!");
+        updateSecondInningsDisplay();
+        displayBallHighlights('second');
+        checkSecondInningsCompletion();
+    }
+
+    function checkSecondInningsCompletion() {
+        if (innings.secondInnings.runs >= innings.secondInnings.target) {
+            alert('Second Innings Complete! Team Wins!');
+        } else if (innings.secondInnings.balls <= 0) {
+            alert('Second Innings Complete! Team Lost!');
+        }
+    }
+
+    function displayBallHighlights(inningsType) {
+        const highlightsContainer = document.getElementById(`${inningsType}-ball-highlights`);
+        highlightsContainer.innerHTML = '';
+        const ballHighlights = inningsType === 'first' ? innings.firstInnings.ballHighlights : innings.secondInnings.ballHighlights;
+
+        ballHighlights.forEach((highlight) => {
+            const highlightElement = document.createElement('div');
+            highlightElement.classList.add('ball-highlight');
+
+            // Apply color based on highlight type
+            if (highlight.startsWith("Run(s):")) {
+                highlightElement.style.color = '#28a745'; // Green for runs
+            } else if (highlight === "Wicket!") {
+                highlightElement.style.color = '#dc3545'; // Red for wickets
+            } else if (highlight.startsWith("Extras:")) {
+                highlightElement.style.color = '#007bff'; // Blue for extras
+            }
+
+            highlightElement.textContent = highlight;
+            highlightsContainer.appendChild(highlightElement);
+        });
+    }
+
+    // Event listeners for buttons
+    document.getElementById("add-first-runs").addEventListener("click", addFirstInningsScore);
+    document.getElementById("add-first-extras").addEventListener("click", addFirstInningsExtras);
+    document.getElementById("add-first-wicket").addEventListener("click", addFirstInningsWicket);
+    document.getElementById("add-second-runs").addEventListener("click", addSecondInningsScore);
+    document.getElementById("add-second-extras").addEventListener("click", addSecondInningsExtras);
+    document.getElementById("add-second-wicket").addEventListener("click", addSecondInningsWicket);
+</script>
+</body>
+</html>
